@@ -1,4 +1,4 @@
-package com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network;
+package com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network;
 
 /**
  * Defined discord channel types. These channels apply only to the discord channel. Minecraft's messages are always sent to the player.

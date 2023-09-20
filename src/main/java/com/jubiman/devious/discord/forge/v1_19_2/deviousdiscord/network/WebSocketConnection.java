@@ -1,7 +1,8 @@
-package com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network;
+package com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network;
 
-import com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.Config;
-import com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.DeviousDiscord;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.Config;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.DeviousDiscord;
+import net.minecraft.network.chat.Component;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -40,12 +41,12 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @param username The username of the player who sent the message.
 	 * @param message The message to send.
 	 */
-	public void sendMessage(String username, String message) {
+	public void sendMessage(String username, Component message) {
 		JsonObject json = Json.createObjectBuilder()
 				.add("event", "message")
 				.add("server", Config.getIdentifier())
 				.add("player", username)
-				.add("message", message)
+				.add("message", message.getString())
 				.build();
 
 		DeviousDiscord.LOGGER.debug("Sending message to Devious Socket: " + json.toString());

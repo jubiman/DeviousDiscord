@@ -1,6 +1,6 @@
-package com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord;
+package com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord;
 
-import com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.ChannelType;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.ChannelType;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

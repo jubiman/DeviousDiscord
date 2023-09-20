@@ -1,4 +1,4 @@
-package com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network;
+package com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network;
 
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.server.level.ServerPlayer;

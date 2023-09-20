@@ -1,11 +1,11 @@
-package com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord;
+package com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord;
 
-import com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.ChannelHandler;
-import com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.WebSocketConnection;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.ChannelHandler;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.WebSocketConnection;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.logging.LogUtils;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
@@ -42,11 +42,11 @@ public class DeviousDiscord {
 						.then(Commands.literal("reconnect")
 								.executes(context -> {
 									try {
-										this.connection = new com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.WebSocketConnection();
-										context.getSource().sendSuccess(new TextComponent(Config.getIdentifier() + " reconnected to Devious Socket"), false);
+										this.connection = new WebSocketConnection();
+										context.getSource().sendSuccess(Component.literal(Config.getIdentifier() + " reconnected to Devious Socket"), false);
 									} catch (Exception e) {
 										LOGGER.warn("Failed to reconnect to Devious Socket", e);
-										context.getSource().sendFailure(new TextComponent("Failed to reconnect to Devious Socket! (See server logs for more info)"));
+										context.getSource().sendFailure(Component.literal("Failed to reconnect to Devious Socket! (See server logs for more info)"));
 										return -1;
 									}
 									return 1;
@@ -83,17 +83,17 @@ public class DeviousDiscord {
 								.executes(context -> {
 									switch (StringArgumentType.getString(context, "channel").toLowerCase()) {
 										case "global" ->
-												com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.ChannelHandler.addGlobalChannel(context.getSource().getPlayerOrException().getUUID());
+												ChannelHandler.addGlobalChannel(context.getSource().getPlayerOrException().getUUID());
 										case "server" ->
-												com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.ChannelHandler.addServerChannel(context.getSource().getPlayerOrException().getUUID());
+												ChannelHandler.addServerChannel(context.getSource().getPlayerOrException().getUUID());
 										case "none" -> // TODO: rename this?
-												com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.ChannelHandler.removeChannel(context.getSource().getPlayerOrException().getUUID());
+												ChannelHandler.removeChannel(context.getSource().getPlayerOrException().getUUID());
 										default -> {
-											context.getSource().sendFailure(new TextComponent("Invalid channel type!"));
+											context.getSource().sendFailure(Component.literal("Invalid channel type!"));
 											return -1;
 										}
 									}
-									context.getSource().sendSuccess(new TextComponent("Joined channel " + StringArgumentType.getString(context, "channel")), false);
+									context.getSource().sendSuccess(Component.literal("Joined channel " + StringArgumentType.getString(context, "channel")), false);
 									return 1;
 								})
 						)
