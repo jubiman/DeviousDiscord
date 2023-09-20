@@ -49,7 +49,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 				.add("message", message.getString())
 				.build();
 
-
 		DeviousDiscord.LOGGER.debug("Sending message to Devious Socket: " + json.toString());
 		CompletableFuture<WebSocket> future = webSocket.sendText(json.toString(), true);
 		try {
