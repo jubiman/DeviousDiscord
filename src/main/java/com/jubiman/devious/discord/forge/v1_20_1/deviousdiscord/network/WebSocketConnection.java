@@ -1,13 +1,11 @@
 package com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.Config;
 import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.DeviousDiscord;
 import net.minecraft.network.chat.Component;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.StringReader;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
@@ -28,11 +26,9 @@ public class WebSocketConnection implements WebSocket.Listener {
 		webSocket = sock.join();
 
 		// Create JSON object to send
-		JsonObject json = Json.createObjectBuilder()
-				.add("event", "identify")
-				.add("identifier", Config.getIdentifier())
-				.build();
-
+		JsonObject json = new JsonObject();
+		json.addProperty("event", "identify");
+		json.addProperty("identifier", Config.getIdentifier());
 		webSocket.sendText(json.toString(), true);
 	}
 
@@ -42,12 +38,11 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @param message The message to send.
 	 */
 	public void sendMessage(String username, Component message) {
-		JsonObject json = Json.createObjectBuilder()
-				.add("event", "message")
-				.add("server", Config.getIdentifier())
-				.add("player", username)
-				.add("message", message.getString())
-				.build();
+		JsonObject json = new JsonObject();
+		json.addProperty("event", "message");
+		json.addProperty("server", Config.getIdentifier());
+		json.addProperty("player", username);
+		json.addProperty("message", message.getString());
 
 		DeviousDiscord.LOGGER.debug("Sending message to Devious Socket: " + json.toString());
 		CompletableFuture<WebSocket> future = webSocket.sendText(json.toString(), true);
@@ -69,31 +64,28 @@ public class WebSocketConnection implements WebSocket.Listener {
 		}
 
 
-		try (JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(data.toString()))) {
-			JsonObject json = reader.readObject();
-			if (json.containsKey("event")) {
-				switch (json.getString("event")) {
-					case "message" -> {
-						if (json.containsKey("channel") && json.getString("channel").equals("global")) {
-							ChannelHandler.sendMessageToGlobalChannel(Config.getGlobalMessageFormat().replaceAll("(?<!\\\\)%s", Config.getIdentifier())
-									.replaceAll("(?<!\\\\)%u", json.getString("username"))
-									.replaceAll("(?<!\\\\)%m", json.getString("message")));
-						} else if (json.containsKey("channel") && json.getString("channel").equals("server")) {
-							ChannelHandler.sendMessageToServerChannel(Config.getServerMessageFormat().replaceAll("(?<!\\\\)%s", Config.getIdentifier())
-									.replaceAll("(?<!\\\\)%u", json.getString("username"))
-									.replaceAll("(?<!\\\\)%m", json.getString("message")));
-						} else {
-							DeviousDiscord.LOGGER.debug("Received unknown message from Devious Socket: " + json.getString("message"));
-						}
+		JsonObject json = new Gson().fromJson(data.toString(), JsonObject.class);
+		//try (JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(data.toString()))) {
+		if (json.has("event")) {
+			switch (json.get("event").getAsString()) {
+				case "message" -> {
+					if (json.has("channel") && json.get("channel").getAsString().equals("global")) {
+						ChannelHandler.sendMessageToGlobalChannel(Config.getGlobalMessageFormat().replaceAll("(?<!\\\\)%s", Config.getIdentifier())
+								.replaceAll("(?<!\\\\)%u", json.get("username").getAsString())
+								.replaceAll("(?<!\\\\)%m", json.get("message").getAsString()));
+					} else if (json.has("channel") && json.get("channel").getAsString().equals("server")) {
+						ChannelHandler.sendMessageToServerChannel(Config.getServerMessageFormat().replaceAll("(?<!\\\\)%s", Config.getIdentifier())
+								.replaceAll("(?<!\\\\)%u", json.get("username").getAsString())
+								.replaceAll("(?<!\\\\)%m", json.get("message").getAsString()));
+					} else {
+						DeviousDiscord.LOGGER.debug("Received unknown message from Devious Socket: " + json.get("message").getAsString());
 					}
-					default ->
-							DeviousDiscord.LOGGER.debug("Received unknown event from Devious Socket: " + json.getString("event"));
 				}
-			} else {
-				DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + data);
+				default -> DeviousDiscord.LOGGER.debug("Received unknown event from Devious Socket: " + json.get("event").getAsString());
 			}
+		} else {
+			DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + data);
 		}
-
 		return null;
 	}
 
