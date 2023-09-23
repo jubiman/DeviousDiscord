@@ -38,7 +38,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 						this);
 		webSocket = sock.join();
 
-		events.get("identify").handle(webSocket, null);
+//		events.get("identify").handle(webSocket, null);
 	}
 
 	/**
@@ -127,6 +127,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 						this);
 		webSocket = sock.join();
 
-		events.get("identify").handle(webSocket, null);
+//		events.get("identify").handle(webSocket, null);
 	}
 }
