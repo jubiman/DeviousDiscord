@@ -43,7 +43,7 @@ public class DeviousDiscord {
 				.requires(source -> source.hasPermission(2))
 				.executes(context -> {
 					try {
-						this.connection = new WebSocketConnection();
+						this.connection.reconnect();
 						context.getSource().sendSuccess(() -> Component.literal(Config.getIdentifier() + " reconnected to Devious Socket"), false);
 					} catch (Exception e) {
 						LOGGER.warn("Failed to reconnect to Devious Socket", e);
