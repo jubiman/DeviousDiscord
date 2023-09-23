@@ -23,17 +23,19 @@ public class WebSocketConnection implements WebSocket.Listener {
 	private static final HashMap<String, Event> events = new HashMap<>();
 
 	static {
-		events.put("identify", new com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.IdentifyEvent());
-		events.put("message", new com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.MessageEvent());
-		events.put("reconnect", new com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.ReconnectEvent());
+		events.put("identify",
+				new com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.IdentifyEvent());
+		events.put("message",
+				new com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.MessageEvent());
 	}
-
 
 	public WebSocketConnection() {
 		DeviousDiscord.LOGGER.debug("Connecting to Devious Socket on " + Config.getHostname() + ":" + Config.getPort());
 
 		CompletableFuture<WebSocket> sock = HttpClient.newHttpClient().newWebSocketBuilder()
-				.buildAsync(java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"), this);
+				.buildAsync(
+						java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"),
+						this);
 		webSocket = sock.join();
 
 		events.get("identify").handle(webSocket, null);
@@ -41,8 +43,9 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	/**
 	 * Sends a chat message to the Devious Socket.
+	 * 
 	 * @param username The username of the player who sent the message.
-	 * @param message The message to send.
+	 * @param message  The message to send.
 	 */
 	public void sendMessage(String username, Component message) {
 		JsonObject json = new JsonObject();
@@ -70,11 +73,11 @@ public class WebSocketConnection implements WebSocket.Listener {
 			return null;
 		}
 
-
 		JsonObject json = gson.fromJson(data.toString(), JsonObject.class);
 		if (json.has("event")) {
 			events.getOrDefault(json.get("event").getAsString(),
-					(webSocket1, json1) -> DeviousDiscord.LOGGER.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
+					(webSocket1, json1) -> DeviousDiscord.LOGGER
+							.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
 					.handle(webSocket, json);
 		} else {
 			DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + data);
@@ -102,6 +105,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	/**
 	 * Closes the WebSocket connection.
+	 * 
 	 * @param reason The reason for closing the connection.
 	 */
 	public void close(String reason) {
@@ -118,9 +122,11 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 */
 	public void reconnect() {
 		CompletableFuture<WebSocket> sock = HttpClient.newHttpClient().newWebSocketBuilder()
-				.buildAsync(java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"), this);
+				.buildAsync(
+						java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"),
+						this);
 		webSocket = sock.join();
 
-		events.get("reconnect").handle(webSocket, null);
+		events.get("identify").handle(webSocket, null);
 	}
 }
