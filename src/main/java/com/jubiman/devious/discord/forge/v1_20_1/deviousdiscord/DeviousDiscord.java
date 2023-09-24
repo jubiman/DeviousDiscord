@@ -38,9 +38,9 @@ public class DeviousDiscord {
 	public void onCommandsRegister(RegisterCommandsEvent event) {
 		// Register command to reconnect to the websocket, only works if the user has the permission level of OP
 		event.getDispatcher().register(Commands.literal("devious")
-				.then(Commands.literal("discord")
-				.then(Commands.literal("reconnect")
+				.then(Commands.literal("admin")
 				.requires(source -> source.hasPermission(2))
+				.then(Commands.literal("reconnect")
 				.executes(context -> {
 					try {
 						this.connection.reconnect();

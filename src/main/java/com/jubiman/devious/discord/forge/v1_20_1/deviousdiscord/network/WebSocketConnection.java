@@ -37,15 +37,13 @@ public class WebSocketConnection implements WebSocket.Listener {
 						java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"),
 						this);
 		webSocket = sock.join();
-
-//		events.get("identify").handle(webSocket, null);
 	}
 
 	/**
-	 * Sends a chat message to the Devious Socket.
-	 * 
+	 * Sends a message to the Devious Socket.
+	 *
 	 * @param username The username of the player who sent the message.
-	 * @param message  The message to send.
+	 * @param message  The message that was sent.
 	 */
 	public void sendMessage(String username, Component message) {
 		JsonObject json = new JsonObject();
@@ -126,7 +124,5 @@ public class WebSocketConnection implements WebSocket.Listener {
 						java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"),
 						this);
 		webSocket = sock.join();
-
-//		events.get("identify").handle(webSocket, null);
 	}
 }
