@@ -37,12 +37,12 @@ public class DeviousDiscord {
 	public void onCommandsRegister(RegisterCommandsEvent event) {
 		// Register command to reconnect to the websocket, only works if the user has the permission level of OP
 		event.getDispatcher().register(Commands.literal("devious")
-				.then(Commands.literal("discord")
+				.then(Commands.literal("admin")
 						.requires(source -> source.hasPermission(2))
 						.then(Commands.literal("reconnect")
 								.executes(context -> {
 									try {
-										this.connection = new WebSocketConnection();
+										this.connection.reconnect();
 										context.getSource().sendSuccess(Component.literal(Config.getIdentifier() + " reconnected to Devious Socket"), false);
 									} catch (Exception e) {
 										LOGGER.warn("Failed to reconnect to Devious Socket", e);
