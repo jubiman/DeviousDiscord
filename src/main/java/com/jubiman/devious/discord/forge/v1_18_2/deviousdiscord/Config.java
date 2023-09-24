@@ -24,12 +24,14 @@ public class Config {
 			.defineEnum("default_channel", ChannelType.SERVER);
 	private static final ForgeConfigSpec.ConfigValue<String> SERVER_MESSAGE_FORMAT = BUILDER
 			.comment("The format of the message sent to the Devious Socket.")
-			.comment("Placeholders: %s = server name, %u = username, %m = message. Use \\\\ to escape the placeholders.")
-			.define("server_message_format", "[%s] %u> %m");
+			.comment(
+					"Placeholders: %s = server name, %u = username, %m = message. Use \\\\ to escape the placeholders.")
+			.define("server_message_format", "§1§l[%s] §4§u<%u>§r %m");
 	private static final ForgeConfigSpec.ConfigValue<String> GLOBAL_MESSAGE_FORMAT = BUILDER
 			.comment("The format of the message sent to the Devious Socket.")
-			.comment("Placeholders: %s = server name, %u = username, %m = message. Use \\\\ to escape the placeholders.")
-			.define("global_message_format", "[GLOBAL] %u> %m");
+			.comment(
+					"Placeholders: %s = server name, %u = username, %m = message %d = Receiving Server Name. Use \\\\ to escape the placeholders.")
+			.define("global_message_format", "§1§l[%d] §4§u<%u>§r %m");
 
 	static final ForgeConfigSpec SPEC = BUILDER.build();
 	private static String hostname;
