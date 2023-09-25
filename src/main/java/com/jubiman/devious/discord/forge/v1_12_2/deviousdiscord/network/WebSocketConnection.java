@@ -51,7 +51,6 @@ public class WebSocketConnection extends WebSocketClient {
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket.", e);
 		}
-		DeviousDiscord.LOGGER.debug("Sent message to Devious Socket: " + json);
 	}
 
 	/**
@@ -101,6 +100,26 @@ public class WebSocketConnection extends WebSocketClient {
 			this.closeConnection(1000, reason);
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to close Devious Socket.", e);
+		}
+	}
+
+	/**
+	 * Sends a player join/leave event to the Devious Socket.
+	 * @param username The username of the player.
+	 * @param joined Whether the player joined or left. True for joined, false for left.
+	 */
+	public void sendPlayerEvent(String username, boolean joined) {
+		JsonObject json = new JsonObject();
+		json.addProperty("event", "playerState");
+		json.addProperty("server", ModConfig.getIdentifier());
+		json.addProperty("player", username);
+		json.addProperty("joined", joined ? "joined" : "left");
+
+		DeviousDiscord.LOGGER.debug("Sending playerState event to Devious Socket: " + json);
+		try {
+			this.send(json.toString());
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to send player event to Devious Socket.", e);
 		}
 	}
 }
