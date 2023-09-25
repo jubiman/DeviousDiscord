@@ -124,6 +124,8 @@ public class DeviousDiscord {
 
 	@SubscribeEvent
 	public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+		connection.sendPlayerEvent(event.getEntity().getName().getString(), true);
+
 		switch (Config.getDefaultChannel()) {
 			case GLOBAL -> ChannelHandler.addGlobalChannel(event.getEntity().getUUID());
 			case SERVER -> ChannelHandler.addServerChannel(event.getEntity().getUUID());
@@ -132,6 +134,8 @@ public class DeviousDiscord {
 
 	@SubscribeEvent
 	public void onPlayerLeave(PlayerEvent.PlayerLoggedOutEvent event) {
+		connection.sendPlayerEvent(event.getEntity().getName().getString(), true);
+
 		ChannelHandler.removeChannel(event.getEntity().getUUID());
 	}
 }
