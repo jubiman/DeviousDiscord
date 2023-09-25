@@ -123,4 +123,24 @@ public class WebSocketConnection implements WebSocket.Listener {
 						this);
 		webSocket = sock.join();
 	}
+
+	/**
+	 * Sends a player join/leave event to the Devious Socket.
+	 * @param username The username of the player.
+	 * @param joined Whether the player joined or left. True for joined, false for left.
+	 */
+	public void sendPlayerEvent(String username, boolean joined) {
+		JsonObject json = new JsonObject();
+		json.addProperty("event", "playerState");
+		json.addProperty("server", Config.getIdentifier());
+		json.addProperty("player", username);
+		json.addProperty("joined", joined ? "joined" : "left");
+
+		DeviousDiscord.LOGGER.debug("Sending playerState event to Devious Socket: " + json);
+		try {
+			webSocket.sendText(json.toString(), true).join();
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to send player event to Devious Socket.", e);
+		}
+	}
 }
