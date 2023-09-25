@@ -8,6 +8,7 @@ Download the mod from one of the releases, and place it in your mods folder. The
 * [Forge 1.20.1](https://github.com/jubiman/DeviousDiscord/tree/forge_1.20.1)
 * [Forge 1.19.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.19.2)
 * [Forge 1.18.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.18.2)
+* [Forge 1.12.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.12.2)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
