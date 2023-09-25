@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Built-By: Admin
+Created-By: Apache Maven 3.3.9
+Build-Jdk: 1.8.0_202
+Maven-Artifact: org.java-websocket:Java-WebSocket:1.5.4
+

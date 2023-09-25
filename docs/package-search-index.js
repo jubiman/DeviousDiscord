@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord"},{"l":"com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network"}];updateSearchResults();

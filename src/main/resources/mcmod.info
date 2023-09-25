@@ -1,0 +1,16 @@
+[
+{
+  "modid": "deviousdiscord",
+  "name": "Devious Discord",
+  "description": "A simple discord integration for Devious",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://jubiman.com/",
+  "updateUrl": "",
+  "authorList": ["Jubiman"],
+  "credits": "Thanks to M1S0 for helping me with the discord integration",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
