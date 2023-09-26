@@ -33,6 +33,11 @@ public class Config {
 					"Placeholders: %s = server name, %u = username, %m = message %d = Receiving Server Name. Use \\\\ to escape the placeholders.")
 			.define("global_message_format", "§1§l[%d] §4§u<%u>§r %m");
 
+	// 5 minutes default, 1 second minimum, 1 hour maximum
+	private static final ForgeConfigSpec.IntValue RECONNECT_INTERVAL = BUILDER
+			.comment("The interval in seconds to wait before reconnecting to the Devious Socket.")
+			.defineInRange("reconnect_interval", 5 * 60, 1, 60 * 60);
+
 	static final ForgeConfigSpec SPEC = BUILDER.build();
 	private static String hostname;
 	private static int port;
@@ -40,6 +45,7 @@ public class Config {
 	private static ChannelType defaultChannel;
 	private static String serverMessageFormat;
 	private static String globalMessageFormat;
+	private static int reconnectInterval;
 
 	@SubscribeEvent
 	static void onLoad(final ModConfigEvent event) {
@@ -51,6 +57,7 @@ public class Config {
 		defaultChannel = DEFAULT_CHANNEL.get();
 		serverMessageFormat = SERVER_MESSAGE_FORMAT.get();
 		globalMessageFormat = GLOBAL_MESSAGE_FORMAT.get();
+		reconnectInterval = RECONNECT_INTERVAL.get();
 	}
 
 	public static String getHostname() {
@@ -75,5 +82,9 @@ public class Config {
 
 	public static String getGlobalMessageFormat() {
 		return globalMessageFormat;
+	}
+
+	public static int getReconnectInterval() {
+		return reconnectInterval;
 	}
 }
