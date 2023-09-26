@@ -58,7 +58,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 				} catch (CompletionException e) {
 					DeviousDiscord.LOGGER.error("Failed to reconnect to Devious Socket. Probably offline, check debug logs for more info.");
 					DeviousDiscord.LOGGER.debug("Failed to reconnect to Devious Socket.", e);
-					DeviousDiscord.LOGGER.info("Retrying in 5 minutes...");
 				}
 			}
 		}, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
