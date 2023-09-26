@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.Config;
 import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.DeviousDiscord;
-import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.Event;
+import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.*;
 import net.minecraft.network.chat.Component;
 
 import java.net.http.HttpClient;
@@ -25,10 +25,9 @@ public class WebSocketConnection implements WebSocket.Listener {
 	private static final HashMap<String, Event> events = new HashMap<>();
 
 	static {
-		events.put("identify",
-				new com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.IdentifyEvent());
-		events.put("message",
-				new com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.events.MessageEvent());
+		events.put("identify", new IdentifyEvent());
+		events.put("message", new MessageEvent());
+		events.put("playerCount", new PlayerCountEvent());
 	}
 
 	public WebSocketConnection() {
@@ -118,6 +117,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	@Override
 	public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
 		DeviousDiscord.LOGGER.info("Devious Socket closed with status code " + statusCode + " and reason " + reason);
+		this.webSocket = null;
 		return null;
 	}
 
