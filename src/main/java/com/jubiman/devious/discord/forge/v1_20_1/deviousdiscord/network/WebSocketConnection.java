@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -69,11 +70,12 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @param username The username of the player who sent the message.
 	 * @param message  The message that was sent.
 	 */
-	public void sendMessage(String username, Component message) {
+	public void sendMessage(String username, UUID uuid, Component message) {
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "message");
 		json.addProperty("server", Config.getIdentifier());
 		json.addProperty("player", username);
+		json.addProperty("uuid", uuid.toString());
 		json.addProperty("message", message.getString());
 
 		DeviousDiscord.LOGGER.debug("Sending message to Devious Socket: " + json);
@@ -154,11 +156,12 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @param username The username of the player.
 	 * @param joined Whether the player joined or left. True for joined, false for left.
 	 */
-	public void sendPlayerEvent(String username, boolean joined) {
+	public void sendPlayerEvent(String username, UUID uuid, boolean joined) {
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "playerState");
 		json.addProperty("server", Config.getIdentifier());
 		json.addProperty("player", username);
+		json.addProperty("uuid", uuid.toString());
 		json.addProperty("joined", joined ? "joined" : "left");
 
 		DeviousDiscord.LOGGER.debug("Sending playerState event to Devious Socket: " + json);
