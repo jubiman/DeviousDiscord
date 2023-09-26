@@ -15,7 +15,13 @@ public class ModConfig {
 		@Config.Comment("The port of the server to connect to.")
 		@Config.RangeInt(min = 0, max = 65535)
 		public int port = 8080;
+
+		@Config.Comment("The hostname of the server to connect to.")
 		public String host = "127.0.0.1";
+
+		@Config.Comment("The interval (in seconds) to wait before attempting to reconnect to the server.")
+		@Config.RangeInt(min = 1, max = 3600)
+		public long reconnectInterval;
 	}
 
 	@Config.Comment("Message configuration")
@@ -43,6 +49,10 @@ public class ModConfig {
 		return networkConfig.host;
 	}
 
+	public static long getReconnectInterval() {
+		return networkConfig.reconnectInterval;
+	}
+
 	public static String getServerMessageFormat() {
 		return messageConfig.serverMessageFormat;
 	}
@@ -53,9 +63,5 @@ public class ModConfig {
 
 	public static ChannelType getDefaultChannel() {
 		return messageConfig.defaultChannel;
-	}
-
-	public static void setIdentifier(String identifier) {
-		networkConfig.identifier = identifier;
 	}
 }

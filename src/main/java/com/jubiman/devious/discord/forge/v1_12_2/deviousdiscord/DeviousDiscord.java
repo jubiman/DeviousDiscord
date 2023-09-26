@@ -54,7 +54,7 @@ public class DeviousDiscord {
 
 	@SubscribeEvent
 	public void onChatMessage(ServerChatEvent event) {
-		connection.sendMessage(event.getUsername(), event.getMessage());
+		connection.sendMessage(event.getUsername(), event.getPlayer().getUniqueID(), event.getMessage());
 	}
 
 	@EventHandler
@@ -69,7 +69,7 @@ public class DeviousDiscord {
 
 	@SubscribeEvent
 	public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-		this.connection.sendPlayerEvent(event.player.getName(), true);
+		this.connection.sendPlayerEvent(event.player.getName(), event.player.getUniqueID(), true);
 
 		switch (ModConfig.getDefaultChannel()) {
 			case GLOBAL: {
@@ -85,7 +85,7 @@ public class DeviousDiscord {
 
 	@SubscribeEvent
 	public void onPlayerLeave(PlayerEvent.PlayerLoggedOutEvent event) {
-		this.connection.sendPlayerEvent(event.player.getName(), false);
+		this.connection.sendPlayerEvent(event.player.getName(), event.player.getUniqueID(), false);
 
 		ChannelHandler.removeChannel(event.player.getUniqueID());
 	}

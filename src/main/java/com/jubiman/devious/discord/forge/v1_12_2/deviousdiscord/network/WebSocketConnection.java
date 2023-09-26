@@ -7,10 +7,13 @@ import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.ModConfig;
 import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.Event;
 import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.IdentifyEvent;
 import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.MessageEvent;
+import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.PlayerCountEvent;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.CompletionException;
 
 /**
  * Handles the WebSocket connection to the Devious Socket.
@@ -20,16 +23,33 @@ public class WebSocketConnection extends WebSocketClient {
 	private static final HashMap<String, Event> events = new HashMap<>();
 
 	static {
-		events.put("identify",
-				new IdentifyEvent());
-		events.put("message",
-				new MessageEvent());
+		events.put("identify", new IdentifyEvent());
+		events.put("message", new MessageEvent());
+		events.put("playerCount", new PlayerCountEvent());
 	}
 
 	public WebSocketConnection() {
 		super(java.net.URI.create("ws://" + ModConfig.getHostname() + ":" + ModConfig.getPort() + "/WSSMessaging"));
 		DeviousDiscord.LOGGER.debug("Connecting to Devious Socket on " + ModConfig.getHostname() + ":" + ModConfig.getPort());
 		super.connect();
+
+		// Schedule a reconnect on a set interval, defined in the config (in seconds, so * 1000L ms)
+		new java.util.Timer().scheduleAtFixedRate(new java.util.TimerTask() {
+			@Override
+			public void run() {
+				try {
+					DeviousDiscord.LOGGER.debug("Checking if Devious Socket connection is closed...");
+					if (isClosed()) {
+						DeviousDiscord.LOGGER.info("Devious Socket connection closed, reconnecting...");
+						reconnect();
+					}
+				} catch (CompletionException e) {
+					DeviousDiscord.LOGGER.error("Failed to reconnect to Devious Socket. Probably offline, check debug logs for more info.");
+					DeviousDiscord.LOGGER.debug("Failed to reconnect to Devious Socket.", e);
+					DeviousDiscord.LOGGER.info("Retrying in 5 minutes...");
+				}
+			}
+		}, ModConfig.getReconnectInterval() * 1000L, ModConfig.getReconnectInterval() * 1000L);
 	}
 
 	/**
@@ -38,11 +58,12 @@ public class WebSocketConnection extends WebSocketClient {
 	 * @param username The username of the player who sent the message.
 	 * @param message  The message that was sent.
 	 */
-	public void sendMessage(String username, String message) {
+	public void sendMessage(String username, UUID uuid, String message) {
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "message");
 		json.addProperty("server", ModConfig.getIdentifier());
 		json.addProperty("player", username);
+		json.addProperty("uuid", uuid.toString());
 		json.addProperty("message", message);
 
 		DeviousDiscord.LOGGER.debug("Sending message to Devious Socket: " + json);
@@ -108,11 +129,12 @@ public class WebSocketConnection extends WebSocketClient {
 	 * @param username The username of the player.
 	 * @param joined Whether the player joined or left. True for joined, false for left.
 	 */
-	public void sendPlayerEvent(String username, boolean joined) {
+	public void sendPlayerEvent(String username, UUID uuid, boolean joined) {
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "playerState");
 		json.addProperty("server", ModConfig.getIdentifier());
 		json.addProperty("player", username);
+		json.addProperty("uuid", uuid.toString());
 		json.addProperty("joined", joined ? "joined" : "left");
 
 		DeviousDiscord.LOGGER.debug("Sending playerState event to Devious Socket: " + json);
