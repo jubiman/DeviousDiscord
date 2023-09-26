@@ -134,7 +134,7 @@ public class DeviousDiscord {
 
 	@SubscribeEvent
 	public void onPlayerLeave(PlayerEvent.PlayerLoggedOutEvent event) {
-		connection.sendPlayerEvent(event.getEntity().getName().getString(), event.getEntity().getUUID(), true);
+		connection.sendPlayerEvent(event.getEntity().getName().getString(), event.getEntity().getUUID(), false);
 
 		ChannelHandler.removeChannel(event.getEntity().getUUID());
 	}
