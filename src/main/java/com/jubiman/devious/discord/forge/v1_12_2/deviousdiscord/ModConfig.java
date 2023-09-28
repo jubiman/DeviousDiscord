@@ -21,7 +21,7 @@ public class ModConfig {
 
 		@Config.Comment("The interval (in seconds) to wait before attempting to reconnect to the server.")
 		@Config.RangeInt(min = 1, max = 3600)
-		public long reconnectInterval;
+		public int reconnectInterval;
 	}
 
 	@Config.Comment("Message configuration")
