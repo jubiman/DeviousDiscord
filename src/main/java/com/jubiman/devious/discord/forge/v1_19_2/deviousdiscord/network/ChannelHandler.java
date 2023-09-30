@@ -77,4 +77,18 @@ public class ChannelHandler {
 			player.displayClientMessage(ComponentUtils.fromMessage(() -> message), false);
 		}
 	}
+
+	/**
+	 * Get the channel a player is in.
+	 * @param uuid The player's UUID.
+	 * @return The channel the player is in.
+	 */
+	public static String getChannel(UUID uuid) {
+		if (globalChannel.contains(uuid)) {
+			return "global";
+		} else if (serverChannel.contains(uuid)) {
+			return "server";
+		}
+		return "none";
+	}
 }

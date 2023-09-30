@@ -72,6 +72,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "message");
 		json.addProperty("server", Config.getIdentifier());
+		json.addProperty("channel", ChannelHandler.getChannel(uuid));
 		json.addProperty("player", username);
 		json.addProperty("uuid", uuid.toString());
 		json.addProperty("message", message.getString());
