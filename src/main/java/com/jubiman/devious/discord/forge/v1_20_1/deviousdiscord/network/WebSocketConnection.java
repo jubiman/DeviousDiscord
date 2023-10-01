@@ -91,12 +91,12 @@ public class WebSocketConnection implements WebSocket.Listener {
 	@Override
 	public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
 		webSocket.request(1);
+		buffer += data;
+
 		if (!last) {
 			DeviousDiscord.LOGGER.debug("Received partial message from Devious Socket: " + data);
-			buffer += data;
 			return null;
 		}
-		buffer += data;
 		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + buffer);
 
 		JsonObject json = gson.fromJson(buffer, JsonObject.class);
