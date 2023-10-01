@@ -106,6 +106,8 @@ public class WebSocketConnection implements WebSocket.Listener {
 		} else {
 			DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + buffer);
 		}
+		// Reset the buffer
+		buffer = "";
 		return null;
 	}
 
