@@ -23,6 +23,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	private static final Gson gson = new Gson();
 	private WebSocket webSocket;
 	private static final HashMap<String, Event> events = new HashMap<>();
+	private String buffer = "";
 
 	static {
 		events.put("identify", new IdentifyEvent());
@@ -88,21 +89,22 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	@Override
 	public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + data);
 		webSocket.request(1);
+		buffer += data;
 		if (!last) {
 			DeviousDiscord.LOGGER.debug("Received partial message from Devious Socket: " + data);
 			return null;
 		}
+		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + buffer);
 
-		JsonObject json = gson.fromJson(data.toString(), JsonObject.class);
+		JsonObject json = gson.fromJson(buffer, JsonObject.class);
 		if (json.has("event")) {
 			events.getOrDefault(json.get("event").getAsString(),
 					(webSocket1, json1) -> DeviousDiscord.LOGGER
 							.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
 					.handle(webSocket, json);
 		} else {
-			DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + data);
+			DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + buffer);
 		}
 		return null;
 	}
