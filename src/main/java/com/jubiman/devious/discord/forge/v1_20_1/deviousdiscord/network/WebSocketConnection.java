@@ -170,5 +170,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send player event to Devious Socket.", e);
 		}
+		DeviousDiscord.LOGGER.info("Sent playerState event to Devious Socket: " + json);
 	}
 }
