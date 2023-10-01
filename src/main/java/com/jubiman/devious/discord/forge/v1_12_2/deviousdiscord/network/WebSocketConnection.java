@@ -89,14 +89,14 @@ public class WebSocketConnection extends WebSocketClient {
 	public void onMessage(String data) {
 		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + data);
 
-		JsonObject json = gson.fromJson(data, JsonObject.class);
-		if (json.has("event")) {
+		try {
+			JsonObject json = gson.fromJson(data, JsonObject.class);
 			events.getOrDefault(json.get("event").getAsString(),
-					(webSocket1, json1) -> DeviousDiscord.LOGGER
-							.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
+							(webSocket1, json1) -> DeviousDiscord.LOGGER
+									.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
 					.handle(this, json);
-		} else {
-			DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + data);
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to parse JSON from Devious Socket.", e);
 		}
 	}
 
