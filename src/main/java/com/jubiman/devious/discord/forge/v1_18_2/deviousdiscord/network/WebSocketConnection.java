@@ -97,14 +97,15 @@ public class WebSocketConnection implements WebSocket.Listener {
 		}
 		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + buffer);
 
-		JsonObject json = gson.fromJson(buffer, JsonObject.class);
-		if (json.has("event")) {
+		try {
+			JsonObject json = gson.fromJson(buffer, JsonObject.class);
 			events.getOrDefault(json.get("event").getAsString(),
 							(webSocket1, json1) -> DeviousDiscord.LOGGER
 									.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
 					.handle(webSocket, json);
-		} else {
-			DeviousDiscord.LOGGER.error("Received unknown message from Devious Socket: " + buffer);
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to parse JSON from Devious Socket.", e);
+			return null;
 		}
 		// Reset buffer
 		buffer = "";
