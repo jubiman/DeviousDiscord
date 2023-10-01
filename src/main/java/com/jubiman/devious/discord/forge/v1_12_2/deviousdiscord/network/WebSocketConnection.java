@@ -71,6 +71,7 @@ public class WebSocketConnection extends WebSocketClient {
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket.", e);
 		}
+		DeviousDiscord.LOGGER.info("Sent message to Devious Socket: " + json);
 	}
 
 	/**
@@ -86,7 +87,7 @@ public class WebSocketConnection extends WebSocketClient {
 
 	@Override
 	public void onMessage(String data) {
-		DeviousDiscord.LOGGER.debug("Received message from Devious Socket: " + data);
+		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + data);
 
 		JsonObject json = gson.fromJson(data, JsonObject.class);
 		if (json.has("event")) {
@@ -143,5 +144,6 @@ public class WebSocketConnection extends WebSocketClient {
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send player event to Devious Socket.", e);
 		}
+		DeviousDiscord.LOGGER.info("Sent playerState event to Devious Socket: " + json);
 	}
 }
