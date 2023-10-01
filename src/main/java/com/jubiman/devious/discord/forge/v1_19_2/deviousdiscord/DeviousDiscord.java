@@ -1,5 +1,7 @@
 package com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord;
 
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.commands.TempbanCommand;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.commands.TempbanIpCommand;
 import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.ChannelHandler;
 import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.WebSocketConnection;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -99,6 +101,8 @@ public class DeviousDiscord {
 						)
 				)
 		);
+		TempbanCommand.register(event.getDispatcher());
+		TempbanIpCommand.register(event.getDispatcher());
 	}
 
 	@SubscribeEvent
