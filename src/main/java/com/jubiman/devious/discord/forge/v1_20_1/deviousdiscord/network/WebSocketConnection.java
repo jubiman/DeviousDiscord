@@ -83,12 +83,12 @@ public class WebSocketConnection implements WebSocket.Listener {
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket.", e);
 		}
-		DeviousDiscord.LOGGER.debug("Sent message to Devious Socket: " + json);
+		DeviousDiscord.LOGGER.info("Sent message to Devious Socket: " + json);
 	}
 
 	@Override
 	public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-		DeviousDiscord.LOGGER.debug("Received message from Devious Socket: " + data);
+		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + data);
 		webSocket.request(1);
 		if (!last) {
 			DeviousDiscord.LOGGER.debug("Received partial message from Devious Socket: " + data);

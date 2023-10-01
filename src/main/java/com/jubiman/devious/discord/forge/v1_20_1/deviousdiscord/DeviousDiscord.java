@@ -1,5 +1,7 @@
 package com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord;
 
+import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.commands.TempbanCommand;
+import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.commands.TempbanIpCommand;
 import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.ChannelHandler;
 import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.WebSocketConnection;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -96,7 +98,10 @@ public class DeviousDiscord {
 							}
 							context.getSource().sendSuccess(() -> Component.literal("Joined channel " + StringArgumentType.getString(context, "channel")), false);
 							return 1;
-						}))));
+						})))
+		);
+		TempbanCommand.register(event.getDispatcher());
+		TempbanIpCommand.register(event.getDispatcher());
 	}
 
 	@SubscribeEvent
