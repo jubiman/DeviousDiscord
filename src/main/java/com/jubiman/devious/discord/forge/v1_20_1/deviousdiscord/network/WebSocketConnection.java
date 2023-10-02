@@ -65,6 +65,21 @@ public class WebSocketConnection implements WebSocket.Listener {
 	}
 
 	/**
+	 * Sends an event to the Devious Socket.
+	 * @param json The event to send.
+	 */
+	private void sendJson(JsonObject json) {
+		DeviousDiscord.LOGGER.debug("Sending event to Devious Socket: " + json);
+		try {
+			webSocket.sendText(json.toString(), true).join();
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to send event to Devious Socket. See debug logs for more info.");
+			DeviousDiscord.LOGGER.debug("Failed to send event to Devious Socket.", e);
+		}
+		DeviousDiscord.LOGGER.info("Sent event to Devious Socket: " + json);
+	}
+
+	/**
 	 * Sends a message to the Devious Socket.
 	 *
 	 * @param username The username of the player who sent the message.
@@ -79,13 +94,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 		json.addProperty("uuid", uuid.toString());
 		json.addProperty("message", message.getString());
 
-		DeviousDiscord.LOGGER.debug("Sending message to Devious Socket: " + json);
-		try {
-			webSocket.sendText(json.toString(), true).join();
-		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket.", e);
-		}
-		DeviousDiscord.LOGGER.info("Sent message to Devious Socket: " + json);
+		sendJson(json);
 	}
 
 	@Override
@@ -172,14 +181,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 		json.addProperty("uuid", uuid.toString());
 		json.addProperty("joined", joined ? "joined" : "left");
 
-		DeviousDiscord.LOGGER.debug("Sending playerState event to Devious Socket: " + json);
-		try {
-			webSocket.sendText(json.toString(), true).join();
-		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
-			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
-		}
-		DeviousDiscord.LOGGER.info("Sent playerState event to Devious Socket: " + json);
+		sendJson(json);
 	}
 
 	public void sendServerStateEvent(String state) {
@@ -188,12 +190,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 		json.addProperty("server", Config.getIdentifier());
 		json.addProperty("state", state);
 
-		DeviousDiscord.LOGGER.debug("Sending serverState event to Devious Socket: " + json);
-		try {
-			webSocket.sendText(json.toString(), true).join();
-		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to send serverState event to Devious Socket.", e);
-		}
-		DeviousDiscord.LOGGER.info("Sent serverState event to Devious Socket: " + json);
+		sendJson(json);
 	}
 }
