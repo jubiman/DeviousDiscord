@@ -82,7 +82,8 @@ public class WebSocketConnection implements WebSocket.Listener {
 		try {
 			webSocket.sendText(json.toString(), true).join();
 		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket.", e);
+			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
+			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
 		}
 		DeviousDiscord.LOGGER.info("Sent message to Devious Socket: " + json);
 	}
@@ -157,15 +158,15 @@ public class WebSocketConnection implements WebSocket.Listener {
 	/**
 	 * Sends a player join/leave event to the Devious Socket.
 	 * @param username The username of the player.
-	 * @param joined Whether the player joined or left. True for joined, false for left.
+	 * @param state Whether the player joined or left.
 	 */
-	public void sendPlayerEvent(String username, UUID uuid, boolean joined) {
+	public void sendPlayerEvent(String username, UUID uuid, String state) {
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "playerState");
 		json.addProperty("server", Config.getIdentifier());
 		json.addProperty("player", username);
 		json.addProperty("uuid", uuid.toString());
-		json.addProperty("joined", joined ? "joined" : "left");
+		json.addProperty("joined", state);
 
 		DeviousDiscord.LOGGER.debug("Sending playerState event to Devious Socket: " + json);
 		try {
@@ -174,5 +175,24 @@ public class WebSocketConnection implements WebSocket.Listener {
 			DeviousDiscord.LOGGER.error("Failed to send player event to Devious Socket.", e);
 		}
 		DeviousDiscord.LOGGER.info("Sent playerState event to Devious Socket: " + json);
+	}
+
+	/**
+	 * Sends a server state event to the Devious Socket.
+	 * @param state The state of the server. (started, stopping)
+	 */
+	public void sendServerStateEvent(String state) {
+		JsonObject json = new JsonObject();
+		json.addProperty("event", "serverState");
+		json.addProperty("server", Config.getIdentifier());
+		json.addProperty("state", state);
+
+		DeviousDiscord.LOGGER.debug("Sending serverState event to Devious Socket: " + json);
+		try {
+			webSocket.sendText(json.toString(), true).join();
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to send serverState event to Devious Socket.", e);
+		}
+		DeviousDiscord.LOGGER.info("Sent serverState event to Devious Socket: " + json);
 	}
 }
