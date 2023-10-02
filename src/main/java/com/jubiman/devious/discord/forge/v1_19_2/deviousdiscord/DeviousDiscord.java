@@ -110,6 +110,7 @@ public class DeviousDiscord {
 		LOGGER.info("Trying to connect to Devious Socket");
 		try {
 			connection = new WebSocketConnection();
+			connection.sendServerStateEvent("started");
 		} catch (Exception e) {
 			LOGGER.warn("Failed to connect to Devious Socket", e);
 		}
@@ -122,6 +123,7 @@ public class DeviousDiscord {
 
 	@SubscribeEvent
 	public void onServerStopping(ServerStoppingEvent event) {
+		connection.sendServerStateEvent("stopping");
 		LOGGER.info("Closing Devious Socket connection");
 		connection.close("Server is closing connection");
 	}
