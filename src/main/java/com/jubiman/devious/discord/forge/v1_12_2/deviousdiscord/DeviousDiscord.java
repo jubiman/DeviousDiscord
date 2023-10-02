@@ -47,6 +47,7 @@ public class DeviousDiscord {
 		LOGGER.info("Trying to connect to Devious Socket");
 		try {
 			connection = new WebSocketConnection();
+			connection.sendServerStateEvent("started");
 		} catch (Exception e) {
 			LOGGER.warn("Failed to connect to Devious Socket", e);
 		}
@@ -59,6 +60,7 @@ public class DeviousDiscord {
 
 	@EventHandler
 	public void serverStopping(FMLServerStoppingEvent event) {
+		connection.sendServerStateEvent("stopping");
 		LOGGER.info("Trying to disconnect from Devious Socket");
 		try {
 			connection.close("Server is closing connection");
