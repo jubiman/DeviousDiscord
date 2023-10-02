@@ -99,7 +99,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 		}
 		DeviousDiscord.LOGGER.info("Received message from Devious Socket: " + buffer);
 
-
 		try {
 			JsonObject json = gson.fromJson(buffer, JsonObject.class);
 			events.getOrDefault(json.get("event").getAsString(),
@@ -107,7 +106,8 @@ public class WebSocketConnection implements WebSocket.Listener {
 									.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
 					.handle(webSocket, json);
 		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to parse JSON from Devious Socket.", e);
+			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
+			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
 			return null;
 		}
 		// Reset buffer
@@ -176,8 +176,24 @@ public class WebSocketConnection implements WebSocket.Listener {
 		try {
 			webSocket.sendText(json.toString(), true).join();
 		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to send player event to Devious Socket.", e);
+			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
+			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
 		}
 		DeviousDiscord.LOGGER.info("Sent playerState event to Devious Socket: " + json);
+	}
+
+	public void sendServerStateEvent(String state) {
+		JsonObject json = new JsonObject();
+		json.addProperty("event", "serverState");
+		json.addProperty("server", Config.getIdentifier());
+		json.addProperty("state", state);
+
+		DeviousDiscord.LOGGER.debug("Sending serverState event to Devious Socket: " + json);
+		try {
+			webSocket.sendText(json.toString(), true).join();
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to send serverState event to Devious Socket.", e);
+		}
+		DeviousDiscord.LOGGER.info("Sent serverState event to Devious Socket: " + json);
 	}
 }
