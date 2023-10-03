@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -23,6 +24,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	private static final Gson gson = new Gson();
 	private WebSocket webSocket;
 	private static final HashMap<String, Event> events = new HashMap<>();
+	private final TimerTask TIMER_TASK;
 
 	private String buffer = "";
 
@@ -44,24 +46,28 @@ public class WebSocketConnection implements WebSocket.Listener {
 			webSocket = sock.join();
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
+			new java.util.Timer().scheduleAtFixedRate(new TimerTask() {
+				@Override
+				public void run() {
+					try {
+						DeviousDiscord.LOGGER.info("Devious Socket connection closed, reconnecting...");
+						reconnect();
+						// Stop the initial timer task
+						cancel();
+					} catch (CompletionException e) {
+						DeviousDiscord.LOGGER.error("Failed to reconnect to Devious Socket. Probably offline, check debug logs for more info.");
+						DeviousDiscord.LOGGER.debug("Failed to reconnect to Devious Socket.", e);
+					}
+				}
+			}, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
+			TIMER_TASK = null;
+			return;
 		}
 
 		// Schedule a reconnect on a set interval, defined in the config (in seconds, so * 1000L ms)
-		new java.util.Timer().scheduleAtFixedRate(new java.util.TimerTask() {
-			@Override
-			public void run() {
-				try {
-					DeviousDiscord.LOGGER.debug("Checking if Devious Socket connection is closed...");
-					if (webSocket == null || webSocket.isInputClosed() || webSocket.isOutputClosed()) {
-						DeviousDiscord.LOGGER.info("Devious Socket connection closed, reconnecting...");
-						reconnect();
-					}
-				} catch (CompletionException e) {
-					DeviousDiscord.LOGGER.error("Failed to reconnect to Devious Socket. Probably offline, check debug logs for more info.");
-					DeviousDiscord.LOGGER.debug("Failed to reconnect to Devious Socket.", e);
-				}
-			}
-		}, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
+		TIMER_TASK = new WebsocketTimerTask(webSocket, this);
+		new java.util.Timer().scheduleAtFixedRate(TIMER_TASK, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
+
 	}
 
 	/**
@@ -112,8 +118,8 @@ public class WebSocketConnection implements WebSocket.Listener {
 			JsonObject json = gson.fromJson(buffer, JsonObject.class);
 			events.getOrDefault(json.get("event").getAsString(),
 							(webSocket1, json1) -> DeviousDiscord.LOGGER
-									.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString()))
-					.handle(webSocket, json);
+									.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString())
+					).handle(webSocket, json);
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
 			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
@@ -161,11 +167,17 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @throws CompletionException If the connection fails.
 	 */
 	public void reconnect() {
+		TIMER_TASK.cancel();
 		CompletableFuture<WebSocket> sock = HttpClient.newHttpClient().newWebSocketBuilder()
 				.buildAsync(
 						java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"),
 						this);
-		webSocket = sock.join();
+
+		try {
+			webSocket = sock.join();
+		} catch (Exception e) {
+			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
+		}
 	}
 
 	/**
@@ -192,4 +204,30 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 		sendJson(json);
 	}
+
+	private static class WebsocketTimerTask extends TimerTask {
+		private final WebSocket webSocket;
+		private final WebSocketConnection connection;
+
+		public WebsocketTimerTask(WebSocket webSocket, WebSocketConnection connection) {
+			this.webSocket = webSocket;
+			this.connection = connection;
+		}
+
+		@Override
+		public void run() {
+			try {
+				DeviousDiscord.LOGGER.debug("Checking if Devious Socket connection is closed...");
+				if (webSocket == null || webSocket.isInputClosed() || webSocket.isOutputClosed()) {
+					DeviousDiscord.LOGGER.info("Devious Socket connection closed, reconnecting...");
+					connection.reconnect();
+				}
+			} catch (CompletionException e) {
+				DeviousDiscord.LOGGER.error("Failed to reconnect to Devious Socket. Probably offline, check debug logs for more info.");
+				DeviousDiscord.LOGGER.debug("Failed to reconnect to Devious Socket.", e);
+			}
+		}
+
+	}
+
 }
