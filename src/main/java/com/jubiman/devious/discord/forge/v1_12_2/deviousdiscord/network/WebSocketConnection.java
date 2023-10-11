@@ -86,6 +86,7 @@ public class WebSocketConnection extends WebSocketClient {
 		json.addProperty("event", "message");
 		json.addProperty("server", ModConfig.getIdentifier());
 		json.addProperty("player", username);
+		json.addProperty("channel", ChannelHandler.getChannel(uuid));
 		json.addProperty("uuid", uuid.toString());
 		json.addProperty("message", message);
 
@@ -151,7 +152,6 @@ public class WebSocketConnection extends WebSocketClient {
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "playerState");
 		json.addProperty("server", ModConfig.getIdentifier());
-		json.addProperty("channel", ChannelHandler.getChannel(uuid));
 		json.addProperty("player", username);
 		json.addProperty("uuid", uuid.toString());
 		json.addProperty("joined", joined ? "joined" : "left");
