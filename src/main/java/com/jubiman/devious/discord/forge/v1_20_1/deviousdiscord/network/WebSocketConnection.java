@@ -32,6 +32,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 		events.put("identify", new IdentifyEvent());
 		events.put("message", new MessageEvent());
 		events.put("playerCount", new PlayerCountEvent());
+		events.put("ticket", new TicketEvent());
 	}
 
 	public WebSocketConnection() {
