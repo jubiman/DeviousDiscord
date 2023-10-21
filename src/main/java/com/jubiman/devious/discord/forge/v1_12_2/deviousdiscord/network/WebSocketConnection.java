@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.DeviousDiscord;
 import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.ModConfig;
-import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.Event;
-import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.IdentifyEvent;
-import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.MessageEvent;
-import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.PlayerCountEvent;
+import com.jubiman.devious.discord.forge.v1_12_2.deviousdiscord.network.events.*;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -28,6 +25,7 @@ public class WebSocketConnection extends WebSocketClient {
 		events.put("identify", new IdentifyEvent());
 		events.put("message", new MessageEvent());
 		events.put("playerCount", new PlayerCountEvent());
+		events.put("ticket", new TicketEvent());
 	}
 
 	public WebSocketConnection() {
