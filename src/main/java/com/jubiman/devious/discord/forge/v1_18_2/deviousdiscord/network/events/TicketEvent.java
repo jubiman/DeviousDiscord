@@ -2,17 +2,17 @@ package com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.events;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.jubiman.devious.discord.forge.v1_18_2.deviousdiscord.network.WebSocketConnection;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
-import java.net.http.WebSocket;
 import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class TicketEvent implements Event {
 	@Override
-	public void handle(WebSocket webSocket, JsonObject json) {
+	public void handle(WebSocketConnection connection, JsonObject json) {
 		Stream<JsonElement> s = StreamSupport.stream(json.get("names").getAsJsonArray().spliterator(), true);
 		s.map(JsonElement::getAsString)
 				.map(ServerLifecycleHooks.getCurrentServer().getPlayerList()::getPlayerByName)
