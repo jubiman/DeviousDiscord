@@ -161,7 +161,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
 			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
-			return null;
 		}
 		// Reset buffer
 		buffer = "";
