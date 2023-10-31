@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 
 public class TicketEvent implements Event {
 	@Override
-	public void handle(WebSocketConnection webSocket, JsonObject json) {
+	public void handle(WebSocketConnection connection, JsonObject json) {
 		Stream<JsonElement> s = StreamSupport.stream(json.get("names").getAsJsonArray().spliterator(), true);
 		s.map(JsonElement::getAsString)
 				.map(ServerLifecycleHooks.getCurrentServer().getPlayerList()::getPlayerByName)

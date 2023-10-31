@@ -11,11 +11,10 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.*;
 
 /**
  * Handles the WebSocket connection to the Devious Socket.
@@ -25,7 +24,9 @@ public class WebSocketConnection implements WebSocket.Listener {
 	private WebSocket webSocket;
 	private static final HashMap<String, Event> events = new HashMap<>();
 	private final TimerTask TIMER_TASK;
-
+	private final BlockingQueue<JsonObject> QUEUE = new LinkedBlockingQueue<>();
+	private boolean open = true;
+	private final Thread sendThread = new Thread(this::sendLoop, "Devious Socket Send Loop");
 	private String buffer = "";
 
 	static {
@@ -47,7 +48,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 			webSocket = sock.join();
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
-			new java.util.Timer().scheduleAtFixedRate(new TimerTask() {
+			new Timer().scheduleAtFixedRate(new TimerTask() {
 				@Override
 				public void run() {
 					try {
@@ -67,8 +68,9 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 		// Schedule a reconnect on a set interval, defined in the config (in seconds, so * 1000L ms)
 		TIMER_TASK = new WebsocketTimerTask(webSocket, this);
-		new java.util.Timer().scheduleAtFixedRate(TIMER_TASK, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
+		//new Timer().scheduleAtFixedRate(TIMER_TASK, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
 
+		DeviousDiscord.LOGGER.info("Successfully connected to Devious Socket and set up reconnect timer.");
 	}
 
 	/**
@@ -76,14 +78,14 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @param json The event to send.
 	 */
 	public void sendJson(JsonObject json) {
-		DeviousDiscord.LOGGER.debug("Sending event to Devious Socket: " + json);
+		DeviousDiscord.LOGGER.debug("Adding message to queue: " + json);
 		try {
-			webSocket.sendText(json.toString(), true).join();
+			QUEUE.put(json);
 		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to send event to Devious Socket. See debug logs for more info.");
-			DeviousDiscord.LOGGER.debug("Failed to send event to Devious Socket.", e);
+			DeviousDiscord.LOGGER.error("Failed to add message to queue. See debug logs for more info.");
+			DeviousDiscord.LOGGER.debug("Failed to add message to queue.", e);
 		}
-		DeviousDiscord.LOGGER.info("Sent event to Devious Socket: " + json);
+		DeviousDiscord.LOGGER.debug("Added message to queue: " + json);
 	}
 
 	/**
@@ -105,8 +107,35 @@ public class WebSocketConnection implements WebSocket.Listener {
 	}
 
 	@Override
+	public void onOpen(WebSocket webSocket) {
+		WebSocket.Listener.super.onOpen(webSocket);
+		sendThread.start();
+	}
+
+	private void sendLoop() {
+		while (open) {
+			try {
+				JsonObject json = QUEUE.take();
+
+				DeviousDiscord.LOGGER.debug("Sending event to Devious Socket: " + json);
+				try {
+					webSocket.sendText(json.toString(), true).join();
+				} catch (Exception e) {
+					DeviousDiscord.LOGGER.error("Failed to send event to Devious Socket. See debug logs for more info.");
+					DeviousDiscord.LOGGER.debug("Failed to send event to Devious Socket.", e);
+				}
+				DeviousDiscord.LOGGER.info("Sent event to Devious Socket: " + json);
+			} catch (InterruptedException e) {
+				DeviousDiscord.LOGGER.error("Queue interrupted while sending message to Devious Socket. See debug logs for more info.");
+				DeviousDiscord.LOGGER.debug("Queue interrupted while sending message to Devious Socket.", e);
+			}
+		}
+		DeviousDiscord.LOGGER.debug("Send loop closed.");
+	}
+
+	@Override
 	public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-		webSocket.request(1);
+		WebSocket.Listener.super.onText(webSocket, data, last);
 		buffer += data;
 
 		if (!last) {
@@ -124,7 +153,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
 			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
-			return null;
 		}
 		// Reset buffer
 		buffer = "";
@@ -133,20 +161,24 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	@Override
 	public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer data, boolean last) {
-		webSocket.request(1);
+		WebSocket.Listener.super.onBinary(webSocket, data, last);
 		DeviousDiscord.LOGGER.debug("Received binary message from Devious Socket: " + data);
 		return null;
 	}
 
 	@Override
 	public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-		DeviousDiscord.LOGGER.info("Devious Socket closed with status code " + statusCode + " and reason " + reason);
+		WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
+		DeviousDiscord.LOGGER.info("Devious Socket closed with status code " + statusCode + " and reason: " + reason);
+		this.open = false;
+		sendThread.interrupt();
 		this.webSocket = null;
 		return null;
 	}
 
 	@Override
 	public void onError(WebSocket webSocket, Throwable error) {
+		WebSocket.Listener.super.onError(webSocket, error);
 		DeviousDiscord.LOGGER.error("Devious Socket errored", error);
 	}
 
@@ -169,17 +201,14 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @throws CompletionException If the connection fails.
 	 */
 	public void reconnect() {
-		TIMER_TASK.cancel();
+		if (TIMER_TASK != null)
+			TIMER_TASK.cancel();
 		CompletableFuture<WebSocket> sock = HttpClient.newHttpClient().newWebSocketBuilder()
 				.buildAsync(
 						java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"),
 						this);
 
-		try {
-			webSocket = sock.join();
-		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
-		}
+		webSocket = sock.join();
 	}
 
 	/**
@@ -199,7 +228,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 	}
 
 	public void sendServerStateEvent(String state) {
-		if (webSocket == null) return;
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "serverState");
 		json.addProperty("server", Config.getIdentifier());
@@ -230,7 +258,5 @@ public class WebSocketConnection implements WebSocket.Listener {
 				DeviousDiscord.LOGGER.debug("Failed to reconnect to Devious Socket.", e);
 			}
 		}
-
 	}
-
 }
