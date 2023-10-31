@@ -10,6 +10,6 @@ public class IdentifyEvent implements Event {
 		JsonObject out = new JsonObject();
 		out.addProperty("event", "identify");
 		out.addProperty("identifier", Config.getIdentifier());
-		webSocket.sendJson(out);
+		webSocket.send(out);
 	}
 }

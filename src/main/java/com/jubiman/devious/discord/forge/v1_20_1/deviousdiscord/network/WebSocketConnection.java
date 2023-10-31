@@ -13,9 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.*;
 
 /**
  * Handles the WebSocket connection to the Devious Socket.
@@ -25,6 +23,8 @@ public class WebSocketConnection implements WebSocket.Listener {
 	private WebSocket webSocket;
 	private static final HashMap<String, Event> events = new HashMap<>();
 	private final TimerTask TIMER_TASK;
+	private final BlockingQueue<JsonObject> QUEUE = new LinkedBlockingQueue<>();
+	private boolean open = true;
 
 	private String buffer = "";
 
@@ -75,7 +75,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * Sends an event to the Devious Socket.
 	 * @param json The event to send.
 	 */
-	public void sendJson(JsonObject json) {
+	private void sendJson(JsonObject json) {
 		DeviousDiscord.LOGGER.debug("Sending event to Devious Socket: " + json);
 		try {
 			webSocket.sendText(json.toString(), true).join();
@@ -84,6 +84,16 @@ public class WebSocketConnection implements WebSocket.Listener {
 			DeviousDiscord.LOGGER.debug("Failed to send event to Devious Socket.", e);
 		}
 		DeviousDiscord.LOGGER.info("Sent event to Devious Socket: " + json);
+	}
+
+	/**
+	 * Sends a message to the Devious Socket.
+	 * @param json The message to send.
+	 */
+	public void send(JsonObject json) {
+		DeviousDiscord.LOGGER.debug("Adding message to queue: " + json);
+		QUEUE.add(json);
+		DeviousDiscord.LOGGER.debug("Added message to queue: " + json);
 	}
 
 	/**
@@ -102,6 +112,26 @@ public class WebSocketConnection implements WebSocket.Listener {
 		json.addProperty("message", message.getString());
 
 		sendJson(json);
+	}
+
+	@Override
+	public void onOpen(WebSocket webSocket) {
+		new Thread(this::sendLoop).start();
+	}
+
+	private void sendLoop() {
+		while (open) {
+			try {
+				DeviousDiscord.LOGGER.debug("Waiting for message in queue...");
+				JsonObject json = QUEUE.take();
+				DeviousDiscord.LOGGER.debug("Got from queue: " + json);
+				sendJson(json);
+			} catch (InterruptedException e) {
+				DeviousDiscord.LOGGER.error("Queue interrupted while sending message to Devious Socket. See debug logs for more info.");
+				DeviousDiscord.LOGGER.debug("Queue interrupted while sending message to Devious Socket.", e);
+			}
+		}
+		DeviousDiscord.LOGGER.debug("Send loop closed.");
 	}
 
 	@Override
@@ -141,6 +171,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	@Override
 	public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
 		DeviousDiscord.LOGGER.info("Devious Socket closed with status code " + statusCode + " and reason " + reason);
+		this.open = false;
 		this.webSocket = null;
 		return null;
 	}
@@ -169,17 +200,14 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @throws CompletionException If the connection fails.
 	 */
 	public void reconnect() {
-		TIMER_TASK.cancel();
+		if (TIMER_TASK != null)
+			TIMER_TASK.cancel();
 		CompletableFuture<WebSocket> sock = HttpClient.newHttpClient().newWebSocketBuilder()
 				.buildAsync(
 						java.net.URI.create("ws://" + Config.getHostname() + ":" + Config.getPort() + "/WSSMessaging"),
 						this);
 
-		try {
-			webSocket = sock.join();
-		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
-		}
+		webSocket = sock.join();
 	}
 
 	/**
