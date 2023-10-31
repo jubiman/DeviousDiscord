@@ -4,13 +4,12 @@ import com.google.gson.JsonObject;
 import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.Config;
 import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.DeviousDiscord;
 import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.ChannelHandler;
-
-import java.net.http.WebSocket;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.WebSocketConnection;
 
 public class MessageEvent implements Event {
 
 	@Override
-	public void handle(WebSocket webSocket, JsonObject json) {
+	public void handle(WebSocketConnection connection, JsonObject json) {
 		if (json.has("channel") && json.get("channel").getAsString().equals("global")) {
 			ChannelHandler.sendMessageToGlobalChannel(
 					Config.getGlobalMessageFormat().replaceAll("(?<!\\\\)%s", Config.getIdentifier())

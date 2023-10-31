@@ -1,9 +1,8 @@
 package com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.events;
 
 import com.google.gson.JsonObject;
-
-import java.net.http.WebSocket;
+import com.jubiman.devious.discord.forge.v1_19_2.deviousdiscord.network.WebSocketConnection;
 
 public interface Event {
-	void handle(WebSocket webSocket, JsonObject json);
+	void handle(WebSocketConnection connection, JsonObject json);
 }
