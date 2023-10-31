@@ -75,7 +75,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * Sends an event to the Devious Socket.
 	 * @param json The event to send.
 	 */
-	private void sendJson(JsonObject json) {
+	public void sendJson(JsonObject json) {
 		DeviousDiscord.LOGGER.debug("Sending event to Devious Socket: " + json);
 		try {
 			webSocket.sendText(json.toString(), true).join();
@@ -117,10 +117,10 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 		try {
 			JsonObject json = gson.fromJson(buffer, JsonObject.class);
-			events.getOrDefault(json.get("event").getAsString(),
-							(webSocket1, json1) -> DeviousDiscord.LOGGER
+			events.getOrDefault(json.get("event").getAsString().toLowerCase(),
+							(ignored, json1) -> DeviousDiscord.LOGGER
 									.warn("Received unknown event from Devious Socket: " + json1.get("event").getAsString())
-					).handle(webSocket, json);
+					).handle(this, json);
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to send message to Devious Socket. See debug logs for more info.");
 			DeviousDiscord.LOGGER.debug("Failed to send message to Devious Socket.", e);
@@ -156,6 +156,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * @param reason The reason for closing the connection.
 	 */
 	public void close(String reason) {
+		if (webSocket == null) return;
 		try {
 			webSocket.sendClose(WebSocket.NORMAL_CLOSURE, reason).join();
 		} catch (Exception e) {
@@ -198,6 +199,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	}
 
 	public void sendServerStateEvent(String state) {
+		if (webSocket == null) return;
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "serverState");
 		json.addProperty("server", Config.getIdentifier());
