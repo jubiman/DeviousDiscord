@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -47,7 +48,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 			webSocket = sock.join();
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
-			new java.util.Timer().scheduleAtFixedRate(new TimerTask() {
+			new Timer().scheduleAtFixedRate(new TimerTask() {
 				@Override
 				public void run() {
 					try {
@@ -67,8 +68,9 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 		// Schedule a reconnect on a set interval, defined in the config (in seconds, so * 1000L ms)
 		TIMER_TASK = new WebsocketTimerTask(webSocket, this);
-		new java.util.Timer().scheduleAtFixedRate(TIMER_TASK, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
+		//new Timer().scheduleAtFixedRate(TIMER_TASK, Config.getReconnectInterval() * 1000L, Config.getReconnectInterval() * 1000L);
 
+		DeviousDiscord.LOGGER.info("Successfully connected to Devious Socket and set up reconnect timer.");
 	}
 
 	/**
@@ -92,7 +94,12 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 */
 	public void send(JsonObject json) {
 		DeviousDiscord.LOGGER.debug("Adding message to queue: " + json);
-		QUEUE.add(json);
+		try {
+			QUEUE.put(json);
+		} catch (InterruptedException e) {
+			DeviousDiscord.LOGGER.error("Failed to add message to queue. See debug logs for more info.");
+			DeviousDiscord.LOGGER.debug("Failed to add message to queue.", e);
+		}
 		DeviousDiscord.LOGGER.debug("Added message to queue: " + json);
 	}
 
@@ -116,7 +123,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	@Override
 	public void onOpen(WebSocket webSocket) {
-		new Thread(this::sendLoop).start();
+		new Thread(this::sendLoop, "Devious Socket Send Loop").start();
 	}
 
 	private void sendLoop() {
@@ -227,7 +234,6 @@ public class WebSocketConnection implements WebSocket.Listener {
 	}
 
 	public void sendServerStateEvent(String state) {
-		if (webSocket == null) return;
 		JsonObject json = new JsonObject();
 		json.addProperty("event", "serverState");
 		json.addProperty("server", Config.getIdentifier());

@@ -109,7 +109,7 @@ public class DeviousDiscord {
 		LOGGER.info("Trying to connect to Devious Socket");
 		try {
 			connection = new WebSocketConnection();
-			connection.sendServerStateEvent("started");
+			//connection.sendServerStateEvent("started");
 		} catch (Exception e) {
 			LOGGER.warn("Failed to connect to Devious Socket", e);
 		}
