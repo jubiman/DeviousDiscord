@@ -9,7 +9,7 @@ import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.WebSocke
 public class MessageEvent implements Event {
 
 	@Override
-	public void handle(WebSocketConnection webSocket, JsonObject json) {
+	public void handle(WebSocketConnection connection, JsonObject json) {
 		if (json.has("channel") && json.get("channel").getAsString().equals("global")) {
 			ChannelHandler.sendMessageToGlobalChannel(
 					Config.getGlobalMessageFormat().replaceAll("(?<!\\\\)%s", Config.getIdentifier())

@@ -26,7 +26,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 	private final TimerTask TIMER_TASK;
 	private final BlockingQueue<JsonObject> QUEUE = new LinkedBlockingQueue<>();
 	private boolean open = true;
-
+	private final Thread sendThread = new Thread(this::sendLoop, "Devious Socket Send Loop");
 	private String buffer = "";
 
 	static {
@@ -77,26 +77,11 @@ public class WebSocketConnection implements WebSocket.Listener {
 	 * Sends an event to the Devious Socket.
 	 * @param json The event to send.
 	 */
-	private void sendJson(JsonObject json) {
-		DeviousDiscord.LOGGER.debug("Sending event to Devious Socket: " + json);
-		try {
-			webSocket.sendText(json.toString(), true).join();
-		} catch (Exception e) {
-			DeviousDiscord.LOGGER.error("Failed to send event to Devious Socket. See debug logs for more info.");
-			DeviousDiscord.LOGGER.debug("Failed to send event to Devious Socket.", e);
-		}
-		DeviousDiscord.LOGGER.info("Sent event to Devious Socket: " + json);
-	}
-
-	/**
-	 * Sends a message to the Devious Socket.
-	 * @param json The message to send.
-	 */
-	public void send(JsonObject json) {
+	public void sendJson(JsonObject json) {
 		DeviousDiscord.LOGGER.debug("Adding message to queue: " + json);
 		try {
 			QUEUE.put(json);
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to add message to queue. See debug logs for more info.");
 			DeviousDiscord.LOGGER.debug("Failed to add message to queue.", e);
 		}
@@ -123,16 +108,23 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	@Override
 	public void onOpen(WebSocket webSocket) {
-		new Thread(this::sendLoop, "Devious Socket Send Loop").start();
+		WebSocket.Listener.super.onOpen(webSocket);
+		sendThread.start();
 	}
 
 	private void sendLoop() {
 		while (open) {
 			try {
-				DeviousDiscord.LOGGER.debug("Waiting for message in queue...");
 				JsonObject json = QUEUE.take();
-				DeviousDiscord.LOGGER.debug("Got from queue: " + json);
-				sendJson(json);
+
+				DeviousDiscord.LOGGER.debug("Sending event to Devious Socket: " + json);
+				try {
+					webSocket.sendText(json.toString(), true).join();
+				} catch (Exception e) {
+					DeviousDiscord.LOGGER.error("Failed to send event to Devious Socket. See debug logs for more info.");
+					DeviousDiscord.LOGGER.debug("Failed to send event to Devious Socket.", e);
+				}
+				DeviousDiscord.LOGGER.info("Sent event to Devious Socket: " + json);
 			} catch (InterruptedException e) {
 				DeviousDiscord.LOGGER.error("Queue interrupted while sending message to Devious Socket. See debug logs for more info.");
 				DeviousDiscord.LOGGER.debug("Queue interrupted while sending message to Devious Socket.", e);
@@ -143,7 +135,7 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	@Override
 	public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-		webSocket.request(1);
+		WebSocket.Listener.super.onText(webSocket, data, last);
 		buffer += data;
 
 		if (!last) {
@@ -170,21 +162,24 @@ public class WebSocketConnection implements WebSocket.Listener {
 
 	@Override
 	public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer data, boolean last) {
-		webSocket.request(1);
+		WebSocket.Listener.super.onBinary(webSocket, data, last);
 		DeviousDiscord.LOGGER.debug("Received binary message from Devious Socket: " + data);
 		return null;
 	}
 
 	@Override
 	public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-		DeviousDiscord.LOGGER.info("Devious Socket closed with status code " + statusCode + " and reason " + reason);
+		WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
+		DeviousDiscord.LOGGER.info("Devious Socket closed with status code " + statusCode + " and reason: " + reason);
 		this.open = false;
+		sendThread.interrupt();
 		this.webSocket = null;
 		return null;
 	}
 
 	@Override
 	public void onError(WebSocket webSocket, Throwable error) {
+		WebSocket.Listener.super.onError(webSocket, error);
 		DeviousDiscord.LOGGER.error("Devious Socket errored", error);
 	}
 
@@ -264,7 +259,5 @@ public class WebSocketConnection implements WebSocket.Listener {
 				DeviousDiscord.LOGGER.debug("Failed to reconnect to Devious Socket.", e);
 			}
 		}
-
 	}
-
 }

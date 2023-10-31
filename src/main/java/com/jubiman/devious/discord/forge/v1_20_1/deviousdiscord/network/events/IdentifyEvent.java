@@ -6,10 +6,10 @@ import com.jubiman.devious.discord.forge.v1_20_1.deviousdiscord.network.WebSocke
 
 public class IdentifyEvent implements Event {
 	@Override
-	public void handle(WebSocketConnection webSocket, JsonObject json) {
+	public void handle(WebSocketConnection connection, JsonObject json) {
 		JsonObject out = new JsonObject();
 		out.addProperty("event", "identify");
 		out.addProperty("identifier", Config.getIdentifier());
-		webSocket.send(out);
+		connection.sendJson(out);
 	}
 }
