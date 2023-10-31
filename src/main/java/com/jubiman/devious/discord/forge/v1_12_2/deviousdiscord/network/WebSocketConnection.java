@@ -9,6 +9,7 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.util.HashMap;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
@@ -36,7 +37,7 @@ public class WebSocketConnection extends WebSocketClient {
 			super.connect();
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
-			new java.util.Timer().scheduleAtFixedRate(new TimerTask() {
+			new Timer().scheduleAtFixedRate(new TimerTask() {
 				@Override
 				public void run() {
 					try {
@@ -56,7 +57,9 @@ public class WebSocketConnection extends WebSocketClient {
 
 		// Schedule a reconnect on a set interval, defined in the config (in seconds, so * 1000L ms)
 		TIMER_TASK = new WebsocketTimerTask(this);
-		new java.util.Timer().scheduleAtFixedRate(TIMER_TASK, ModConfig.getReconnectInterval() * 1000L, ModConfig.getReconnectInterval() * 1000L);
+		new Timer().scheduleAtFixedRate(TIMER_TASK, ModConfig.getReconnectInterval() * 1000L, ModConfig.getReconnectInterval() * 1000L);
+
+		DeviousDiscord.LOGGER.info("Successfully connected to Devious Socket and set up reconnect timer.");
 	}
 
 	/**
@@ -73,6 +76,7 @@ public class WebSocketConnection extends WebSocketClient {
 		}
 		DeviousDiscord.LOGGER.info("Sent event to Devious Socket: " + json);
 	}
+
 	/**
 	 * Sends a message to the Devious Socket.
 	 *
@@ -173,7 +177,8 @@ public class WebSocketConnection extends WebSocketClient {
 
 	@Override
 	public void reconnect() {
-		TIMER_TASK.cancel();
+		if (TIMER_TASK != null)
+			TIMER_TASK.cancel();
 		try {
 			super.reconnect();
 		} catch (Exception e) {
