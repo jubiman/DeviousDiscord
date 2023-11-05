@@ -34,7 +34,7 @@ public class WebSocketConnection extends WebSocketClient {
 		DeviousDiscord.LOGGER.debug("Connecting to Devious Socket on " + ModConfig.getHostname() + ":" + ModConfig.getPort());
 
 		try {
-			super.connect();
+			super.connectBlocking();
 		} catch (Exception e) {
 			DeviousDiscord.LOGGER.error("Failed to connect to Devious Socket.", e);
 			new Timer().scheduleAtFixedRate(new TimerTask() {
