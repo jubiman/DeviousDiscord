@@ -5,10 +5,10 @@ Devious Discord is a simple discord integration mod for multiple Minecraft versi
 Download the mod from one of the releases, and place it in your mods folder. The mod will automatically create a config file, which you can edit to your liking.
 
 ## Branches
-* [Forge 1.20.1](https://github.com/jubiman/DeviousDiscord/tree/forge_1.20.1)
-* [Forge 1.19.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.19.2)
-* [Forge 1.18.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.18.2)
-* [Forge 1.12.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.12.2)
+* [Forge 1.20.1](https://github.com/jubiman/DeviousDiscord/tree/forge_1.20.1/main)
+* [Forge 1.19.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.19.2/main)
+* [Forge 1.18.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.18.2/main)
+* [Forge 1.12.2](https://github.com/jubiman/DeviousDiscord/tree/forge_1.12.2/main)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
